@@ -1,15 +1,25 @@
-from mindmem_input import RawTextInput, create_text_input_event
+from mindmem.input.text import RawTextInput, create_text_input_event
+from mindmem.sensory.lightweight_relevance import score_relevance
 
-raw_input = RawTextInput(
-    user_id="user_1",
-    session_id="session_1",
-    text="I prefer short answers.",
-    metadata={
-        "timezone": "Africa/Lagos",
-        "is_mobile": True,
-    },
-)
 
-event = create_text_input_event(raw_input)
+examples = [
+    "My name is Abdulsobur and I work as a developer.",
+    "Remind me tomorrow to finish the project.",
+    "Okay",
+]
 
-print(event)
+for text in examples:
+    event = create_text_input_event(
+        RawTextInput(
+            user_id="user_1",
+            session_id="session_1",
+            text=text,
+        )
+    )
+    result = score_relevance(event)
+
+    print(f"Input: {text}")
+    print(f"Score: {result.score}")
+    print(f"Label: {result.label}")
+    print(f"Signals: {', '.join(result.signals)}")
+    print()
