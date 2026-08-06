@@ -26,7 +26,13 @@ def _parse_json(text: str, provider_name: str) -> Mapping[str, Any]:
 
 
 class OpenAIProvider:
-    def __init__(self, *, model: str, api_key: str | None = None):
+    def __init__(
+        self,
+        *,
+        model: str,
+        api_key: str | None = None,
+        base_url: str | None = None,
+    ):
         try:
             from openai import OpenAI
         except ImportError as exc:
@@ -34,7 +40,7 @@ class OpenAIProvider:
                 "Install the OpenAI adapter with: pip install openai"
             ) from exc
 
-        self.client = OpenAI(api_key=api_key)
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
 
     def generate_json(
@@ -44,21 +50,25 @@ class OpenAIProvider:
         output_schema: Mapping[str, Any],
         instructions: str,
     ) -> Mapping[str, Any]:
-        response = self.client.responses.create(
+        response = self.client.chat.completions.create(
             model=self.model,
-            instructions=instructions,
-            input=json.dumps(input_data, separators=(",", ":")),
-            text={
-                "format": {
-                    "type": "json_schema",
-                    "name": "memory_relevance",
+            messages=[
+                {"role": "system", "content": instructions},
+                {
+                    "role": "user",
+                    "content": json.dumps(input_data, separators=(",", ":")),
+                },
+            ],
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "structured_output",
                     "schema": dict(output_schema),
                     "strict": True,
-                }
+                },
             },
-            store=False,
         )
-        return _parse_json(response.output_text, "OpenAI")
+        return _parse_json(response.choices[0].message.content, "OpenAI")
 
 
 class AnthropicProvider:

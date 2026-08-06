@@ -16,10 +16,9 @@ Relevant information includes durable facts, preferences, goals, plans, tasks,
 commitments, corrections, relationships, and meaningful updates. Noise includes
 filler, acknowledgements, and content with no likely future value.
 
-Return a relevance score from 0 to 1. Use label \"relevant\" when the score is
-at least 0.40; otherwise use \"noise\". Consider context only when it changes
-the meaning of the message. If the schema requests a reason, use one short
-sentence. Follow the supplied output schema exactly."""
+Return a relevance score from 0 to 1. Consider context only when it changes the
+meaning of the message. If the schema requests a reason, use one short sentence.
+Follow the supplied output schema exactly."""
 
 
 class LLMRelevanceInput(BaseModel):
@@ -46,9 +45,6 @@ class _ResultWithoutReason(BaseModel):
         ge=0.0,
         le=1.0,
         description="Memory relevance from 0 (none) to 1 (strong).",
-    )
-    label: Literal["noise", "relevant"] = Field(
-        description="Relevant when score is at least 0.40; otherwise noise."
     )
 
 
@@ -133,16 +129,12 @@ class LLMRelevanceScorer:
         except (JSONSchemaValidationError, ValueError) as exc:
             raise LLMResponseValidationError("LLM output failed schema validation") from exc
 
-        expected_label = (
+        label = (
             "relevant" if parsed.score >= LLM_RELEVANT_THRESHOLD else "noise"
         )
-        if parsed.label != expected_label:
-            raise LLMResponseValidationError(
-                "LLM label does not match the relevance score"
-            )
 
         return LLMRelevanceResult(
             score=parsed.score,
-            label=parsed.label,
+            label=label,
             reason=getattr(parsed, "reason", None),
         )

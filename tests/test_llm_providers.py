@@ -33,10 +33,20 @@ class RecordingEndpoint:
 class ProviderAdapterTests(unittest.TestCase):
     def test_openai_uses_strict_json_schema(self):
         endpoint = RecordingEndpoint(
-            SimpleNamespace(output_text='{"score":0.8,"label":"relevant"}')
+            SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(
+                            content='{"score":0.8,"label":"relevant"}'
+                        )
+                    )
+                ]
+            )
         )
         provider = OpenAIProvider.__new__(OpenAIProvider)
-        provider.client = SimpleNamespace(responses=endpoint)
+        provider.client = SimpleNamespace(
+            chat=SimpleNamespace(completions=endpoint)
+        )
         provider.model = "test-model"
 
         result = provider.generate_json(
@@ -45,9 +55,10 @@ class ProviderAdapterTests(unittest.TestCase):
             instructions="Classify.",
         )
 
-        output_format = endpoint.arguments["text"]["format"]
-        self.assertTrue(output_format["strict"])
-        self.assertEqual(output_format["schema"], SCHEMA)
+        output_format = endpoint.arguments["response_format"]
+        self.assertEqual(output_format["type"], "json_schema")
+        self.assertTrue(output_format["json_schema"]["strict"])
+        self.assertEqual(output_format["json_schema"]["schema"], SCHEMA)
         self.assertEqual(result["label"], "relevant")
 
     def test_anthropic_uses_output_config_json_schema(self):

@@ -33,7 +33,7 @@ UNCLEAR = RelevanceResult(score=0.0, label="unclear", signals=())
 
 class LLMRelevanceScorerTests(unittest.TestCase):
     def test_scores_only_unclear_messages(self):
-        provider = FakeProvider({"score": 0.8, "label": "relevant"})
+        provider = FakeProvider({"score": 0.8})
         scorer = LLMRelevanceScorer(provider)
 
         result = scorer.score(event_for("The server stopped again."), UNCLEAR)
@@ -42,7 +42,7 @@ class LLMRelevanceScorerTests(unittest.TestCase):
         self.assertEqual(provider.last_input["text"], "The server stopped again.")
 
     def test_reason_is_absent_by_default(self):
-        provider = FakeProvider({"score": 0.2, "label": "noise"})
+        provider = FakeProvider({"score": 0.2})
         scorer = LLMRelevanceScorer(provider)
 
         result = scorer.score(event_for("Something happened."), UNCLEAR)
@@ -52,7 +52,7 @@ class LLMRelevanceScorerTests(unittest.TestCase):
 
     def test_reason_is_requested_when_enabled(self):
         provider = FakeProvider(
-            {"score": 0.8, "label": "relevant", "reason": "A meaningful update."}
+            {"score": 0.8, "reason": "A meaningful update."}
         )
         scorer = LLMRelevanceScorer(provider)
 
@@ -66,21 +66,23 @@ class LLMRelevanceScorerTests(unittest.TestCase):
         self.assertIn("reason", provider.last_schema["properties"])
 
     def test_rejects_schema_invalid_output(self):
-        provider = FakeProvider({"score": 2.0, "label": "relevant"})
+        provider = FakeProvider({"score": 2.0})
         scorer = LLMRelevanceScorer(provider)
 
         with self.assertRaises(LLMResponseValidationError):
             scorer.score(event_for("The server stopped again."), UNCLEAR)
 
-    def test_rejects_inconsistent_label(self):
-        provider = FakeProvider({"score": 0.2, "label": "relevant"})
+    def test_derives_noise_label_from_score(self):
+        provider = FakeProvider({"score": 0.2})
         scorer = LLMRelevanceScorer(provider)
 
-        with self.assertRaises(LLMResponseValidationError):
-            scorer.score(event_for("The server stopped again."), UNCLEAR)
+        result = scorer.score(event_for("The server stopped again."), UNCLEAR)
+
+        self.assertEqual(result.label, "noise")
+        self.assertNotIn("label", provider.last_schema["properties"])
 
     def test_rejects_messages_already_classified_by_heuristics(self):
-        provider = FakeProvider({"score": 0.8, "label": "relevant"})
+        provider = FakeProvider({"score": 0.8})
         scorer = LLMRelevanceScorer(provider)
         relevant = RelevanceResult(score=0.5, label="relevant", signals=())
 
