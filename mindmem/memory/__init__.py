@@ -3,4 +3,7 @@ from mindmem.memory.short_term import (
     ShortTermMemoryRecord,
 )
 
-__all__ = ["ShortTermMemoryBuffer", "ShortTermMemoryRecord"]
+__all__ = [
+    "ShortTermMemoryBuffer",
+    "ShortTermMemoryRecord",
+]
