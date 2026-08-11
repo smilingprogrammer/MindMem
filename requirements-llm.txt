@@ -1,5 +1,0 @@
--r requirements.txt
-openai
-anthropic
-google-genai
-python-dotenv
