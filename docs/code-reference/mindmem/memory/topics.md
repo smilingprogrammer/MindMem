@@ -5,6 +5,16 @@
 Groups related short-term records using deterministic signals already present in
 structured extraction. It performs no additional LLM call.
 
+## Plain-English Context
+
+This file decides whether a new memory is still about an existing subject or starts
+a new subject. For example, two Apollo messages become one Apollo topic.
+
+It also controls active topics. `TopicTracker` keeps topics in recent-use order, and
+`_refresh_active()` marks only the latest 3 active by default. A fourth topic makes
+the oldest one inactive, but does not delete it. `short_term.py` calls this file when
+storing records, updating tasks, or adding decisions/tool results.
+
 ## Classes
 
 ### `TopicGroup`
@@ -39,8 +49,12 @@ matching representation for each record.
 
 ### `_topic_label(extraction)`
 
-Chooses a readable label using entity priority, facts, or memory type. Needed so
-topics are understandable to callers.
+Chooses a readable label using entity priority, then fact subjects, then objects,
+then memory type. Extracted time expressions and standalone weekdays are excluded.
+For example, `Apollo project -> has_deadline -> Friday` becomes `Apollo project`
+even when extraction provides no project entity. The local `is_label()` helper
+checks that a candidate has meaningful words and is not one of those time values.
+This changes naming only; topic matching and stored facts stay intact.
 
 ### `TopicTracker.__init__(...)`
 

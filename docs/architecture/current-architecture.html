@@ -135,11 +135,11 @@
           <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="Export options" aria-label="Export options">...</button>
         </div>
       </div>
-      <p class="subtitle">Implemented text flow only: input, relevance, extraction, and in-memory short-term records</p>
+      <p class="subtitle">Implemented flow: input, sensory processing, short-term memory, and initial long-term consolidation</p>
     </div>
 
     <div class="diagram-container">
-      <svg viewBox="0 0 1200 760" role="img" aria-label="MindMem implemented component architecture">
+      <svg viewBox="0 0 1480 760" role="img" aria-label="MindMem implemented component architecture">
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
@@ -189,6 +189,10 @@
         <line x1="1060" y1="375" x2="1060" y2="395" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <line x1="1060" y1="505" x2="1060" y2="525" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <line x1="1060" y1="580" x2="1060" y2="595" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 1155 327 L 1185 327 Q 1200 327 1200 190 L 1210 190" fill="none" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="1198" y="305" fill="#60a5fa" font-size="7" text-anchor="end">manual consolidation</text>
+        <line x1="1330" y1="255" x2="1330" y2="285" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <line x1="1330" y1="380" x2="1330" y2="420" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Layer boundaries -->
         <rect x="20" y="60" width="260" height="640" rx="12" fill="rgba(8, 51, 68, 0.08)" stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4"/>
@@ -199,6 +203,9 @@
 
         <rect x="940" y="60" width="240" height="640" rx="12" fill="rgba(76, 29, 149, 0.08)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="8,4"/>
         <text x="955" y="82" fill="#a78bfa" font-size="11" font-weight="600">SHORT-TERM MEMORY</text>
+
+        <rect x="1190" y="60" width="270" height="640" rx="12" fill="rgba(30, 58, 138, 0.08)" stroke="#60a5fa" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="1205" y="82" fill="#60a5fa" font-size="11" font-weight="600">LONG-TERM MEMORY</text>
 
         <!-- Input components -->
         <rect x="50" y="125" width="200" height="80" rx="6" fill="#0f172a"/>
@@ -294,6 +301,32 @@
         <text x="1060" y="617" fill="white" font-size="10" font-weight="600" text-anchor="middle">Context Retrieval</text>
         <text x="1060" y="635" fill="#94a3b8" font-size="7" text-anchor="middle">records + state for agent | no LLM</text>
 
+        <!-- Long-term components -->
+        <rect x="1210" y="125" width="240" height="130" rx="6" fill="#0f172a"/>
+        <rect x="1210" y="125" width="240" height="130" rx="6" fill="rgba(30, 58, 138, 0.35)" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="1330" y="150" fill="white" font-size="11" font-weight="600" text-anchor="middle">Topic Consolidation</text>
+        <text x="1330" y="174" fill="#94a3b8" font-size="8" text-anchor="middle">manual trigger</text>
+        <text x="1330" y="192" fill="#94a3b8" font-size="8" text-anchor="middle">durable types + confidence rules</text>
+        <text x="1330" y="210" fill="#94a3b8" font-size="8" text-anchor="middle">facts + configured working state</text>
+        <text x="1330" y="238" fill="#64748b" font-size="7" text-anchor="middle">memory/consolidation.py</text>
+
+        <rect x="1210" y="285" width="240" height="95" rx="6" fill="#0f172a"/>
+        <rect x="1210" y="285" width="240" height="95" rx="6" fill="rgba(30, 58, 138, 0.35)" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="1330" y="310" fill="white" font-size="11" font-weight="600" text-anchor="middle">Source Episodes</text>
+        <text x="1330" y="334" fill="#94a3b8" font-size="8" text-anchor="middle">raw text + event/topic/source time</text>
+        <text x="1330" y="352" fill="#94a3b8" font-size="8" text-anchor="middle">preserved as evidence</text>
+        <text x="1330" y="369" fill="#64748b" font-size="7" text-anchor="middle">LongTermEpisode</text>
+
+        <rect x="1210" y="420" width="240" height="200" rx="6" fill="#0f172a"/>
+        <rect x="1210" y="420" width="240" height="200" rx="6" fill="rgba(30, 58, 138, 0.35)" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="1330" y="445" fill="white" font-size="11" font-weight="600" text-anchor="middle">In-Memory Long-Term Store</text>
+        <text x="1330" y="472" fill="#94a3b8" font-size="8" text-anchor="middle">exact duplicate merging</text>
+        <text x="1330" y="491" fill="#94a3b8" font-size="8" text-anchor="middle">source-aware replay protection</text>
+        <text x="1330" y="510" fill="#94a3b8" font-size="8" text-anchor="middle">configured conflict versioning</text>
+        <text x="1330" y="529" fill="#94a3b8" font-size="8" text-anchor="middle">current + superseded history</text>
+        <text x="1330" y="548" fill="#94a3b8" font-size="8" text-anchor="middle">facts + decisions + tasks + tools</text>
+        <text x="1330" y="580" fill="#64748b" font-size="7" text-anchor="middle">memory/long_term.py</text>
+
         <!-- Legend outside layer boundaries -->
         <rect x="250" y="720" width="14" height="9" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee"/>
         <text x="272" y="728" fill="#94a3b8" font-size="8">Input</text>
@@ -305,6 +338,8 @@
         <text x="632" y="728" fill="#94a3b8" font-size="8">Short-term memory</text>
         <rect x="770" y="720" width="14" height="9" rx="2" fill="rgba(136, 19, 55, 0.35)" stroke="#fb7185"/>
         <text x="792" y="728" fill="#94a3b8" font-size="8">Flow stopped</text>
+        <rect x="875" y="720" width="14" height="9" rx="2" fill="rgba(30, 58, 138, 0.35)" stroke="#60a5fa"/>
+        <text x="897" y="728" fill="#94a3b8" font-size="8">Long-term memory</text>
       </svg>
     </div>
 
@@ -321,6 +356,8 @@
           <li>4. Extract and store only relevant content.</li>
           <li>5. Group the record and update working state.</li>
           <li>6. Retrieve focused context for the agent.</li>
+          <li>7. Manually consolidate a selected topic.</li>
+          <li>8. Preserve episodes and version durable memories.</li>
         </ul>
       </div>
 
@@ -337,6 +374,8 @@
           <li>Wrong grouping: <code>memory/topics.py</code></li>
           <li>Wrong task/state data: <code>memory/reasoning_state.py</code></li>
           <li>Wrong agent context: <code>memory/retrieval.py</code></li>
+          <li>Wrong candidates: <code>memory/consolidation.py</code></li>
+          <li>Wrong history/dedup: <code>memory/long_term.py</code></li>
         </ul>
       </div>
 
@@ -364,13 +403,15 @@
           <li>Related records share a topic; 3 topics stay active.</li>
           <li>Explicit decisions, tasks, and tool results are tracked.</li>
           <li>Focused context retrieval makes no LLM call.</li>
+          <li>Consolidation is manual, rule-based, and idempotent.</li>
+          <li>Long-term episodes and memories currently live in RAM.</li>
           <li>Oldest record is removed after capacity is reached.</li>
           <li>No database or persistence adapter is active.</li>
         </ul>
       </div>
     </div>
 
-    <p class="footer">MindMem implemented architecture reference | Updated 2026-08-10</p>
+    <p class="footer">MindMem implemented architecture reference | Updated 2026-09-08</p>
   </div>
 
   <script>

@@ -18,6 +18,7 @@ from mindmem.sensory.extraction import MemoryExtractionResult
 class ShortTermMemoryRecord:
     id: str
     event_id: str
+    event_timestamp: str
     user_id: str
     session_id: str
     topic_id: str
@@ -70,6 +71,7 @@ class ShortTermMemoryBuffer:
         record = ShortTermMemoryRecord(
             id=record_id,
             event_id=event.id,
+            event_timestamp=event.timestamp,
             user_id=event.user_id,
             session_id=event.session_id,
             topic_id=topic.id,

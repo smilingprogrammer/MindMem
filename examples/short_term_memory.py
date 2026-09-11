@@ -2,7 +2,12 @@ from dotenv import load_dotenv
 
 from examples.provider_setup import create_provider
 from mindmem.input.text import RawTextInput, create_text_input_event
-from mindmem.memory import ShortTermContextRetriever, ShortTermMemoryBuffer
+from mindmem.memory import (
+    InMemoryLongTermMemoryStore,
+    ShortTermConsolidator,
+    ShortTermContextRetriever,
+    ShortTermMemoryBuffer,
+)
 from mindmem.sensory.extraction import LLMMemoryExtractor
 from mindmem.sensory.lightweight_relevance import score_relevance
 from mindmem.sensory.relevance.llm_relevance import LLMRelevanceScorer
@@ -15,8 +20,18 @@ def main() -> None:
     extractor = LLMMemoryExtractor(provider)
     buffer = ShortTermMemoryBuffer()
     context_retriever = ShortTermContextRetriever(buffer)
+    long_term_memory = InMemoryLongTermMemoryStore(
+        single_value_relations={"deadline"}
+    )
+    consolidator = ShortTermConsolidator(
+        short_term_memory=buffer,
+        long_term_memory=long_term_memory,
+    )
 
-    print("Enter messages. Commands: /memories, /topics, /state, /context, /exit")
+    print(
+        "Enter messages. Commands: /memories, /topics, /state, /context, "
+        "/consolidate, /long-term, /exit"
+    )
     print("State commands: /decision TEXT, /task TEXT, /tool TEXT, /complete TASK_ID")
 
     while True:
@@ -58,6 +73,30 @@ def main() -> None:
             print(f"Decisions: {len(context.decisions)}")
             print(f"Open tasks: {len(context.open_tasks)}")
             print(f"Tool results: {len(context.tool_results)}")
+            continue
+        if text == "/consolidate":
+            result = consolidator.consolidate_topic(
+                user_id="user_1",
+                session_id="session_1",
+            )
+            print(
+                f"Consolidated: {result.created_count} created, "
+                f"{result.updated_count} updated, "
+                f"{result.unchanged_count} unchanged, "
+                f"{result.skipped_fact_count} skipped"
+            )
+            continue
+        if text == "/long-term":
+            memories = long_term_memory.get_memories(
+                user_id="user_1",
+                include_superseded=True,
+            )
+            print(f"Long-term memories: {len(memories)}")
+            for memory in memories:
+                print(
+                    f"- [{memory.status}] {memory.kind}: "
+                    f"{memory.subject} -> {memory.relation} -> {memory.object}"
+                )
             continue
         if text.startswith("/decision "):
             item = buffer.add_decision(

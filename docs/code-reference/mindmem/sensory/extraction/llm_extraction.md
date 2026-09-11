@@ -4,6 +4,13 @@
 
 Extracts schema-constrained memory information from relevant text in one LLM call.
 
+## Plain-English Context
+
+This file turns a relevant sentence into structured memory. For example, “Apollo's
+deadline is Friday” becomes entities and an atomic fact with exact source evidence.
+It calls `llm_providers.py`, validates the answer, and sends the result toward
+`short_term.py`.
+
 ## Classes
 
 ### `MemoryExtractionInput`

@@ -5,6 +5,13 @@
 Builds focused, structured short-term context for an agent without making an LLM call
 or modifying memory.
 
+## Plain-English Context
+
+This file packages what the agent needs before its next action. It chooses the current
+topic unless a topic ID is supplied, then returns that topic's records, decisions,
+unfinished tasks, and tool results. It reads `short_term.py`; it does not score,
+extract, store, or call an LLM.
+
 ## Classes
 
 ### `ShortTermContext`

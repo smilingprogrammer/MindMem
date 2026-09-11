@@ -4,6 +4,13 @@
 
 Defines and validates text entering MindMem.
 
+## Plain-English Context
+
+This is where every user message first becomes MindMem data. A developer supplies
+raw text and backend IDs; `create_text_input_event()` rejects missing values and adds
+an event ID, timestamp, and `text` modality. The resulting event is passed to
+`lightweight_relevance.py`.
+
 ## Classes
 
 ### `RawTextInput`

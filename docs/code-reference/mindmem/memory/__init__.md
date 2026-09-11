@@ -2,6 +2,6 @@
 
 ## Purpose
 
-Re-exports `ShortTermMemoryBuffer`, `ShortTermMemoryRecord`, `TopicGroup`,
-`ReasoningStateItem`, `ShortTermContext`, and `ShortTermContextRetriever`. It is
-needed as the stable public short-term memory API.
+Re-exports the public short-term, context-retrieval, consolidation, and in-memory
+long-term types. It is needed as the stable memory API without requiring callers to
+know each internal module path.

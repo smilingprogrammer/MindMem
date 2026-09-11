@@ -121,16 +121,35 @@ def _signals_for(
 
 
 def _topic_label(extraction: MemoryExtractionResult) -> str:
-    if extraction.entities:
+    temporal_values = {
+        " ".join(item.text.casefold().split())
+        for item in extraction.temporal_expressions
+    }
+    temporal_values.update({
+        "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    })
+
+    def is_label(value: str) -> bool:
+        return (
+            bool(_meaningful_words(value))
+            and " ".join(value.casefold().split()) not in temporal_values
+        )
+
+    entities = [entity for entity in extraction.entities if is_label(entity.name)]
+    if entities:
         entity = min(
-            enumerate(extraction.entities),
+            enumerate(entities),
             key=lambda item: (_LABEL_PRIORITY[item[1].type], item[0]),
         )[1]
         return entity.name.strip()
 
-    for fact in extraction.facts:
-        for candidate in (fact.object, fact.subject):
-            if _meaningful_words(candidate):
+    # A fact's subject usually names the topic; its object may only be a value.
+    for candidates in (
+        [fact.subject for fact in extraction.facts],
+        [fact.object for fact in extraction.facts],
+    ):
+        for candidate in candidates:
+            if is_label(candidate):
                 return candidate.strip()[:80]
 
     return extraction.memory_types[0].replace("_", " ").title()

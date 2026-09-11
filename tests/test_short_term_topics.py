@@ -7,6 +7,7 @@ from mindmem.sensory.extraction import (
     EntityExtraction,
     FactExtraction,
     MemoryExtractionResult,
+    TemporalExtraction,
 )
 
 
@@ -112,6 +113,52 @@ class TopicGroupingTests(unittest.TestCase):
         self.assertEqual(len(topics), 1)
         self.assertEqual(topics[0].record_ids, (first.id, second.id))
         self.assertEqual(first.topic_id, second.topic_id)
+
+    def test_deadline_label_prefers_subject_over_time(self):
+        text = "The Apollo project deadline is Friday."
+        for entities, temporal in (
+            ([], []),
+            ([EntityExtraction(name="Friday", type="other", evidence="Friday", confidence=1.0)], []),
+            ([], [TemporalExtraction(text="Friday", applies_to="Apollo deadline")]),
+        ):
+            with self.subTest(entities=entities, temporal=temporal):
+                buffer = ShortTermMemoryBuffer()
+                buffer.store(
+                    event=create_text_input_event(RawTextInput(
+                        user_id="user_1", session_id="session_1", text=text,
+                    )),
+                    relevance_score=1.0,
+                    extraction=MemoryExtractionResult(
+                        source_text=text, memory_types=["project"], entities=entities,
+                        facts=[FactExtraction(
+                            subject="Apollo project", relation="has_deadline", object="Friday",
+                            evidence=text, confidence=1.0,
+                        )],
+                        temporal_expressions=temporal,
+                    ),
+                )
+                self.assertEqual(buffer.get_current_topic(
+                    user_id="user_1", session_id="session_1",
+                ).label, "Apollo project")
+
+    def test_label_skips_extracted_time_and_generic_subject(self):
+        text = "I will visit Lagos in two weeks."
+        extraction = MemoryExtractionResult(
+            source_text=text, memory_types=["event"],
+            entities=[EntityExtraction(
+                name="in two weeks", type="other", evidence="in two weeks", confidence=1.0,
+            )],
+            facts=[FactExtraction(
+                subject="user", relation="visits", object="Lagos", evidence=text, confidence=1.0,
+            )],
+            temporal_expressions=[TemporalExtraction(text="in two weeks", applies_to="visit")],
+        )
+        self.buffer.store(
+            event=create_text_input_event(RawTextInput(
+                user_id="user_1", session_id="session_1", text=text,
+            )), relevance_score=1.0, extraction=extraction,
+        )
+        self.assertEqual(self.topics()[0].label, "Lagos")
 
     def test_creates_separate_topics_for_unrelated_entities(self):
         self.store("Apollo changed.", entity_name="Apollo")

@@ -5,6 +5,12 @@
 Uses an LLM only when lightweight relevance returns `unclear`. The LLM returns a
 score; Python derives `noise` or `relevant` at `0.40`.
 
+## Plain-English Context
+
+This is the second opinion for messages the cheap filter could not classify. It calls
+`llm_providers.py`, requests a structured score, and decides the final label in Python.
+Only relevant results continue to `llm_extraction.py`.
+
 ## Classes
 
 ### `LLMRelevanceInput`

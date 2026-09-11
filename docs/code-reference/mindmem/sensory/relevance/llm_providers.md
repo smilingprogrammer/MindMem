@@ -4,6 +4,12 @@
 
 Adapts OpenAI, Anthropic, and Gemini APIs to one schema-constrained JSON interface.
 
+## Plain-English Context
+
+This file is the translator between MindMem and different LLM APIs. Relevance and
+extraction call the same `generate_json()` shape, while this file converts that call
+into the format expected by OpenAI, Anthropic, or Gemini.
+
 ## Classes
 
 ### `ProviderDependencyError`

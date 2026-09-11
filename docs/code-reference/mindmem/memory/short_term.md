@@ -4,12 +4,20 @@
 
 Provides the public facade that coordinates session records, topics, and working state.
 
+## Plain-English Context
+
+This is the main door into short-term memory. After the sensory layer extracts a
+relevant message, it calls `store()`. This file saves the record, asks `topics.py`
+where it belongs, and asks `reasoning_state.py` to create an open task when the
+extraction says the message is a task. `retrieval.py` later reads through this file.
+
 ## Classes
 
 ### `ShortTermMemoryRecord`
 
 Immutable link between the input event, relevance score, structured extraction, topic,
-session, and storage time. Needed as the unit held in short-term memory.
+session, event time, and storage time. Needed as the unit held in short-term memory
+and as the source for a long-term episode.
 
 ### `ShortTermMemoryBuffer`
 

@@ -49,8 +49,25 @@ flowchart LR
         M --> O
     end
 
+    subgraph LongTerm[Long-Term Memory]
+        P[Manual topic consolidation]
+        Q[Rule-based candidate selection]
+        U[Raw source episodes]
+        V[Exact duplicate merging]
+        W[Configured conflict versioning]
+        X[In-memory long-term store]
+
+        P --> Q
+        Q --> U
+        Q --> V
+        V --> W
+        W --> X
+    end
+
     C --> D
     F --> H
+    I --> P
+    L --> P
 ```
 
 ## Components
@@ -66,6 +83,8 @@ flowchart LR
 | Topic grouping | Group related records using weighted entity and fact signals; track the latest active topics | `mindmem/memory/topics.py` |
 | Reasoning state | Store explicit decisions, tasks, task status, and tool results under a topic | `mindmem/memory/reasoning_state.py` |
 | Context retrieval | Assemble a selected topic's records, decisions, unfinished tasks, and tool results for an agent | `mindmem/memory/retrieval.py` |
+| Consolidation | Select durable facts and state from one short-term topic using configurable rules | `mindmem/memory/consolidation.py` |
+| Long-term store | Preserve raw episodes, merge duplicate memories, and retain configured conflict history in RAM | `mindmem/memory/long_term.py` |
 
 ## Relevance Flow
 
@@ -137,6 +156,26 @@ from the same session. It returns topic records, decisions, unfinished tasks, an
 results without making an LLM call or changing memory. `record_limit` can restrict
 the returned records to the latest items.
 
+## Long-Term Consolidation
+
+`ShortTermConsolidator.consolidate_topic()` is currently called manually for the
+current or a selected topic. It:
+
+- stores each selected short-term record as a raw `LongTermEpisode`
+- selects facts from durable memory types with fact confidence at least `0.70`
+- requires short-term relevance of at least `0.40`
+- optionally includes decisions, tasks, and tool results
+- sends accepted candidates to `InMemoryLongTermMemoryStore`
+
+The store merges exact duplicate facts and combines their evidence/source IDs.
+Conflict versioning applies only to relations configured as single-value. A new value
+becomes `current`; the previous value becomes `superseded` without being deleted.
+Reprocessing the same source is idempotent.
+
+This first implementation is in RAM and makes no consolidation LLM call. Automatic
+triggers, semantic entity/fact resolution, temporal normalization, persistent storage,
+and long-term retrieval are not implemented yet.
+
 ## Troubleshooting
 
 | Problem | Check |
@@ -150,6 +189,8 @@ the returned records to the latest items.
 | Incorrect topic grouping or active-topic order | `mindmem/memory/topics.py` |
 | Missing decisions, tasks, statuses, or tool results | `mindmem/memory/reasoning_state.py` |
 | Missing or cross-session agent context | `mindmem/memory/retrieval.py` |
+| Incorrect candidate selection or consolidation counts | `mindmem/memory/consolidation.py` |
+| Incorrect duplicate merging, conflict history, or source episodes | `mindmem/memory/long_term.py` |
 
 ## Runnable Examples
 

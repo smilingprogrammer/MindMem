@@ -4,6 +4,13 @@
 
 Stores explicit decisions, tasks, task progress, and tool results under session topics.
 
+## Plain-English Context
+
+This file remembers the current state of work, not just conversation facts. For
+example, it can remember that Stripe was selected, checkout testing is blocked, and
+the connection tool succeeded. `short_term.py` calls it to add or update state;
+`retrieval.py` reads that state for the agent.
+
 ## Classes
 
 ### `ReasoningStateItem`
