@@ -75,6 +75,71 @@ def store_fact(
 
 
 class LongTermConsolidationTests(unittest.TestCase):
+    def enable_automatic(self, **kwargs):
+        self.short_term = ShortTermMemoryBuffer(**kwargs)
+        self.consolidator = ShortTermConsolidator(
+            short_term_memory=self.short_term, long_term_memory=self.long_term,
+            automatic=True,
+        )
+
+    def test_automatic_inactive_topic(self):
+        self.enable_automatic(max_active_topics_per_session=1)
+        store_fact(self.short_term, text="Apollo deadline is Friday.")
+        store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas", object_="Monday")
+        memories = self.long_term.get_memories(user_id="user_1")
+        self.assertEqual([item.subject for item in memories], ["Apollo"])
+
+    def test_automatic_eviction_preserves_fact_and_state(self):
+        self.enable_automatic(max_records_per_session=1)
+        store_fact(self.short_term, text="Apollo deadline is Friday.")
+        self.short_term.add_decision(user_id="user_1", session_id="session_1", content="Use Stripe")
+        store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas")
+        memories = self.long_term.get_memories(user_id="user_1")
+        self.assertEqual({item.kind for item in memories}, {"fact", "decision"})
+        self.assertEqual(len(self.short_term.get_recent(user_id="user_1", session_id="session_1")), 1)
+
+    def test_task_update_consolidates_displaced_topic(self):
+        self.enable_automatic(max_active_topics_per_session=1)
+        store_fact(self.short_term, text="Apollo deadline is Friday.")
+        task = self.short_term.add_task(user_id="user_1", session_id="session_1", content="Test Apollo")
+        store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas")
+        self.short_term.update_task(task_id=task.id, status="completed")
+        facts = [item.subject for item in self.long_term.get_memories(user_id="user_1") if item.kind == "fact"]
+        self.assertEqual(set(facts), {"Apollo", "Atlas"})
+
+    def test_inactivity_failure_can_retry_without_resubmitting_message(self):
+        from unittest.mock import patch
+
+        self.enable_automatic(max_active_topics_per_session=1)
+        store_fact(self.short_term, text="Apollo deadline is Friday.")
+        with patch.object(self.long_term, "upsert", side_effect=RuntimeError("offline")):
+            with self.assertRaises(RuntimeError):
+                store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas")
+        self.short_term.end_session(user_id="user_1", session_id="session_1")
+        self.assertEqual(len(self.long_term.get_memories(user_id="user_1")), 2)
+        self.assertEqual(len(self.short_term.get_recent(user_id="user_1", session_id="session_1")), 2)
+
+    def test_end_session_is_scoped_and_repeatable(self):
+        self.enable_automatic()
+        store_fact(self.short_term, text="Apollo deadline is Friday.")
+        store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas", session_id="other")
+        for _ in range(2):
+            self.short_term.end_session(user_id="user_1", session_id="session_1")
+        self.assertEqual([item.subject for item in self.long_term.get_memories(user_id="user_1")], ["Apollo"])
+        self.assertEqual(len(self.short_term.get_recent(user_id="user_1", session_id="session_1")), 1)
+
+    def test_storage_failure_prevents_eviction_and_can_retry(self):
+        from unittest.mock import patch
+
+        self.enable_automatic(max_records_per_session=1)
+        record = store_fact(self.short_term, text="Apollo deadline is Friday.")
+        with patch.object(self.long_term, "upsert", side_effect=RuntimeError("offline")):
+            with self.assertRaisesRegex(RuntimeError, "offline"):
+                store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas")
+        self.assertEqual(self.short_term.get_recent(user_id="user_1", session_id="session_1"), (record,))
+        store_fact(self.short_term, text="Atlas deadline is Monday.", subject="Atlas")
+        self.assertEqual(len(self.long_term.get_memories(user_id="user_1")), 1)
+
     def setUp(self) -> None:
         self.clock = MutableClock()
         self.short_term = ShortTermMemoryBuffer(clock=self.clock)

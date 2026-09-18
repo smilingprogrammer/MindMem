@@ -1,5 +1,25 @@
 # `mindmem/memory/short_term.py`
 
+## Automatic Consolidation
+
+`set_consolidation_handler(handler)` connects one consolidator to this buffer.
+`ShortTermConsolidator(automatic=True, ...)` installs it for the developer.
+`store()` saves topics about to lose records before changing the buffer, then
+consolidates topics that became inactive. State additions and task updates can
+reactivate topics, so they also check for newly inactive topics.
+
+`_consolidate_inactive(previous)` queues topics that changed from active to inactive.
+`_flush_consolidation()` saves queued topics, removing each only after success.
+Failures propagate; failed work stays queued for retry. Eviction failures leave
+the old records intact and reject the incoming record. Inactivity failures occur
+after the new record/state is accepted; call `end_session()` to retry saving it
+without resubmitting the same message.
+
+`end_session(user_id=..., session_id=...)` saves every topic in that session.
+The application calls this when a chat ends. It does not clear memory or detect
+disconnections automatically. Repeated calls are supported. `clear_session()`
+remains an explicit discard operation and cancels queued work for the session.
+
 ## Purpose
 
 Provides the public facade that coordinates session records, topics, and working state.

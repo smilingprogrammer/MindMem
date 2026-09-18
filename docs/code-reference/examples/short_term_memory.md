@@ -1,5 +1,10 @@
 # `examples/short_term_memory.py`
 
+Automatic consolidation is enabled when constructing the consolidator. Inactive
+topics and topics about to lose records are saved automatically. `/exit` calls
+`buffer.end_session()` to save all remaining topics. The example's long-term store
+is still in RAM, so exiting the process does not persist it to disk.
+
 ## Purpose
 
 Runs the complete implemented pipeline interactively: input, relevance, extraction,

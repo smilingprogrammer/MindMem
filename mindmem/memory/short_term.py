@@ -46,6 +46,36 @@ class ShortTermMemoryBuffer:
             max_active_topics_per_session=max_active_topics_per_session
         )
         self._state = ReasoningStateStore()
+        self._consolidate: Callable[[TopicGroup], object] | None = None
+        self._pending_topics: dict[str, TopicGroup] = {}
+
+    def set_consolidation_handler(self, handler: Callable[[TopicGroup], object]) -> None:
+        if self._consolidate is not None:
+            raise ValueError("a consolidation handler is already configured")
+        self._consolidate = handler
+
+    def end_session(self, *, user_id: str, session_id: str) -> None:
+        if self._consolidate is None:
+            raise ValueError("automatic consolidation is not configured")
+        for topic in self.get_topics(user_id=user_id, session_id=session_id):
+            self._pending_topics[topic.id] = topic
+        self._flush_consolidation()
+
+    def _flush_consolidation(self) -> None:
+        if self._consolidate is None:
+            return
+        for topic_id, topic in tuple(self._pending_topics.items()):
+            self._consolidate(topic)
+            del self._pending_topics[topic_id]
+
+    def _consolidate_inactive(self, previous: tuple[TopicGroup, ...]) -> None:
+        if self._consolidate is None:
+            return
+        for topic in previous:
+            current = self._topics.get_topic(topic.id)
+            if current is not None and not current.is_active:
+                self._pending_topics[current.id] = current
+        self._flush_consolidation()
 
     def store(
         self,
@@ -60,6 +90,16 @@ class ShortTermMemoryBuffer:
             raise ValueError("extraction source_text must match the input event")
 
         now = self._now()
+        previous = self.get_topics(
+            user_id=event.user_id, session_id=event.session_id, active_only=True,
+        )
+        records = self._records.get((event.user_id, event.session_id), [])
+        if self._consolidate is not None:
+            for old_record in records[:max(0, len(records) + 1 - self.max_records_per_session)]:
+                old_topic = self._require_topic(old_record.topic_id)
+                self._pending_topics[old_topic.id] = old_topic
+            # Fail before accepting the new record or removing its predecessors.
+            self._flush_consolidation()
         record_id = str(uuid4())
         topic = self._topics.assign(
             record_id=record_id,
@@ -106,6 +146,7 @@ class ShortTermMemoryBuffer:
                 source_record_id=record.id,
                 now=now,
             )
+        self._consolidate_inactive(previous)
         return record
 
     def get_recent(
@@ -211,7 +252,9 @@ class ShortTermMemoryBuffer:
     def update_task(self, *, task_id: str, status: TaskStatus) -> ReasoningStateItem:
         now = self._now()
         item = self._state.update_task(task_id=task_id, status=status, now=now)
+        previous = self.get_topics(user_id=item.user_id, session_id=item.session_id, active_only=True)
         self._topics.touch(topic_id=item.topic_id, now=now)
+        self._consolidate_inactive(previous)
         return item
 
     def get_reasoning_state(
@@ -239,6 +282,7 @@ class ShortTermMemoryBuffer:
         records = self._records.pop((user_id, session_id), [])
         for record in records:
             self._records_by_id.pop(record.id, None)
+            self._pending_topics.pop(record.topic_id, None)
         self._topics.clear_session(user_id=user_id, session_id=session_id)
         self._state.clear_session(user_id=user_id, session_id=session_id)
         return len(records)
@@ -275,7 +319,9 @@ class ShortTermMemoryBuffer:
             source_record_id=source_record_id,
             now=now,
         )
+        previous = self.get_topics(user_id=user_id, session_id=session_id, active_only=True)
         self._topics.touch(topic_id=topic.id, now=now)
+        self._consolidate_inactive(previous)
         return item
 
     def _resolve_topic(

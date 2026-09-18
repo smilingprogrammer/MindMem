@@ -1,5 +1,9 @@
 # `tests/test_long_term_consolidation.py`
 
+Automatic-trigger tests cover inactive topics, task reactivation, preservation of
+facts and state before eviction, session isolation, repeated session-end calls,
+and recovery from storage failures before eviction or after inactivity changes.
+
 ## Purpose
 
 Protects the first long-term consolidation and storage implementation.

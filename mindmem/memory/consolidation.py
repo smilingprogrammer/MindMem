@@ -62,10 +62,18 @@ class ShortTermConsolidator:
         short_term_memory: ShortTermMemoryBuffer,
         long_term_memory: LongTermMemoryStore,
         policy: ConsolidationPolicy | None = None,
+        automatic: bool = False,
     ) -> None:
         self.short_term_memory = short_term_memory
         self.long_term_memory = long_term_memory
         self.policy = policy or ConsolidationPolicy()
+        if automatic:
+            short_term_memory.set_consolidation_handler(self._consolidate_automatically)
+
+    def _consolidate_automatically(self, topic: TopicGroup) -> ConsolidationResult:
+        return self.consolidate_topic(
+            user_id=topic.user_id, session_id=topic.session_id, topic_id=topic.id,
+        )
 
     def consolidate_topic(
         self,

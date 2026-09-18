@@ -1,5 +1,14 @@
 # `mindmem/memory/consolidation.py`
 
+## Automatic Triggers
+
+Pass `automatic=True` to the constructor to register
+`_consolidate_automatically(topic)` with the short-term buffer. This helper calls
+the same `consolidate_topic()` method used manually, retaining policy checks and
+duplicate protection. The default remains manual for existing callers.
+Triggers are topic inactivity, impending eviction, and explicit session end.
+These run synchronously without additional LLM calls.
+
 ## Purpose
 
 Selects durable information from a short-term topic and writes it into long-term

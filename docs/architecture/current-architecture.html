@@ -190,7 +190,7 @@
         <line x1="1060" y1="505" x2="1060" y2="525" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <line x1="1060" y1="580" x2="1060" y2="595" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path d="M 1155 327 L 1185 327 Q 1200 327 1200 190 L 1210 190" fill="none" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <text x="1198" y="305" fill="#60a5fa" font-size="7" text-anchor="end">manual consolidation</text>
+        <text x="1198" y="305" fill="#60a5fa" font-size="7" text-anchor="end">manual / automatic consolidation</text>
         <line x1="1330" y1="255" x2="1330" y2="285" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <line x1="1330" y1="380" x2="1330" y2="420" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
@@ -305,7 +305,7 @@
         <rect x="1210" y="125" width="240" height="130" rx="6" fill="#0f172a"/>
         <rect x="1210" y="125" width="240" height="130" rx="6" fill="rgba(30, 58, 138, 0.35)" stroke="#60a5fa" stroke-width="1.5"/>
         <text x="1330" y="150" fill="white" font-size="11" font-weight="600" text-anchor="middle">Topic Consolidation</text>
-        <text x="1330" y="174" fill="#94a3b8" font-size="8" text-anchor="middle">manual trigger</text>
+        <text x="1330" y="174" fill="#94a3b8" font-size="8" text-anchor="middle">manual / automatic trigger</text>
         <text x="1330" y="192" fill="#94a3b8" font-size="8" text-anchor="middle">durable types + confidence rules</text>
         <text x="1330" y="210" fill="#94a3b8" font-size="8" text-anchor="middle">facts + configured working state</text>
         <text x="1330" y="238" fill="#64748b" font-size="7" text-anchor="middle">memory/consolidation.py</text>
@@ -356,7 +356,7 @@
           <li>4. Extract and store only relevant content.</li>
           <li>5. Group the record and update working state.</li>
           <li>6. Retrieve focused context for the agent.</li>
-          <li>7. Manually consolidate a selected topic.</li>
+          <li>7. Consolidate manually or on inactivity, eviction, and session end.</li>
           <li>8. Preserve episodes and version durable memories.</li>
         </ul>
       </div>
@@ -403,7 +403,7 @@
           <li>Related records share a topic; 3 topics stay active.</li>
           <li>Explicit decisions, tasks, and tool results are tracked.</li>
           <li>Focused context retrieval makes no LLM call.</li>
-          <li>Consolidation is manual, rule-based, and idempotent.</li>
+          <li>Consolidation is rule-based and idempotent, with optional automatic triggers.</li>
           <li>Long-term episodes and memories currently live in RAM.</li>
           <li>Oldest record is removed after capacity is reached.</li>
           <li>No database or persistence adapter is active.</li>

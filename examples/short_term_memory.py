@@ -26,6 +26,7 @@ def main() -> None:
     consolidator = ShortTermConsolidator(
         short_term_memory=buffer,
         long_term_memory=long_term_memory,
+        automatic=True,
     )
 
     print(
@@ -37,6 +38,7 @@ def main() -> None:
     while True:
         text = input("You: ").strip()
         if text == "/exit":
+            buffer.end_session(user_id="user_1", session_id="session_1")
             break
         if text == "/memories":
             records = buffer.get_recent(

@@ -50,7 +50,7 @@ flowchart LR
     end
 
     subgraph LongTerm[Long-Term Memory]
-        P[Manual topic consolidation]
+        P[Manual or automatic topic consolidation]
         Q[Rule-based candidate selection]
         U[Raw source episodes]
         V[Exact duplicate merging]
@@ -158,8 +158,10 @@ the returned records to the latest items.
 
 ## Long-Term Consolidation
 
-`ShortTermConsolidator.consolidate_topic()` is currently called manually for the
-current or a selected topic. It:
+`ShortTermConsolidator.consolidate_topic()` handles the current or a selected topic.
+With `automatic=True`, the buffer calls it when a topic becomes inactive, before
+capacity eviction, and when the application calls `buffer.end_session(...)`.
+Session end saves all session topics without clearing them. It:
 
 - stores each selected short-term record as a raw `LongTermEpisode`
 - selects facts from durable memory types with fact confidence at least `0.70`
@@ -172,8 +174,8 @@ Conflict versioning applies only to relations configured as single-value. A new 
 becomes `current`; the previous value becomes `superseded` without being deleted.
 Reprocessing the same source is idempotent.
 
-This first implementation is in RAM and makes no consolidation LLM call. Automatic
-triggers, semantic entity/fact resolution, temporal normalization, persistent storage,
+This first implementation is in RAM and makes no consolidation LLM call.
+Semantic entity/fact resolution, temporal normalization, persistent storage,
 and long-term retrieval are not implemented yet.
 
 ## Troubleshooting
